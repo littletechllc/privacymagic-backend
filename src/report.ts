@@ -93,9 +93,10 @@ export const reportSubject = (report: ProblemReport): string =>
 
 export const reportText = (report: ProblemReport, submittedAt: Date): string =>
   [
-    `Website: ${report.website ?? 'not included'}`,
     `Email: ${report.email ?? 'not provided'}`,
     `Submitted: ${submittedAt.toISOString()}`,
+    '',
+    `Website: ${report.website ?? 'not included'}`,
     '',
     report.description,
   ].join('\n')
