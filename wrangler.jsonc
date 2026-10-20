@@ -12,7 +12,7 @@
   },
   "vars": {
     "REPORT_TO": "reports@privacymagic.com",
-    "REPORT_FROM": "noreply@mail.privacymagic.com"
+    "REPORT_FROM": "noreply@reports.privacymagic.com"
   },
   // This binding can deliver only to the reports mailbox. A public form
   // cannot turn the Worker into an open mailer.
@@ -20,7 +20,7 @@
     {
       "name": "EMAIL",
       "destination_address": "reports@privacymagic.com",
-      "allowed_sender_addresses": ["noreply@mail.privacymagic.com"]
+      "allowed_sender_addresses": ["noreply@reports.privacymagic.com"]
     }
   ],
   "ratelimits": [
