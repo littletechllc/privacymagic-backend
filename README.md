@@ -39,3 +39,7 @@ npm run deploy
 ```
 
 `npm run dev` simulates sending and does not deliver mail. `npm test` checks validation and the request handler.
+
+## License
+
+[GPL-3.0-or-later](LICENSE).
