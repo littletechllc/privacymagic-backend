@@ -3,6 +3,9 @@
   "name": "privacymagic-backend",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-20",
+  "routes": [
+    { "pattern": "reports.privacymagic.com", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   },
