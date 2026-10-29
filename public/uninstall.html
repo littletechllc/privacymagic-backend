@@ -273,7 +273,8 @@
       </svg>
       <span>Thank you for trying Privacy Magic!</span>
     </h1>
-    <p>The Privacy Magic extension has been uninstalled. If you would like to provide feedback, we would be very grateful.</p>
+    <p>The Privacy Magic extension has been uninstalled.</p>
+    <p id="uninstallFeedbackInvite">If you would like to provide feedback, we would be very grateful.</p>
   </div>
   <div id="uninstallForm">
     <label class="report-field" for="feedbackDescription">
@@ -310,7 +311,7 @@
   }
 
   var form = document.getElementById('uninstallForm');
-  var intro = document.getElementById('uninstallIntro');
+  var feedbackInvite = document.getElementById('uninstallFeedbackInvite');
   var descriptionInput = document.getElementById('feedbackDescription');
   var emailInput = document.getElementById('emailAddress');
   var submitButton = document.getElementById('uninstallSubmit');
@@ -321,7 +322,7 @@
   var thanksPanel = document.getElementById('uninstallThanks');
   var thanksMessage = document.getElementById('uninstallThanksMessage');
 
-  if (!form || !intro || !descriptionInput || !emailInput || !submitButton ||
+  if (!form || !feedbackInvite || !descriptionInput || !emailInput || !submitButton ||
       !submitLabel || !submitDots || !emailError || !errorElement ||
       !thanksPanel || !thanksMessage) {
     return;
@@ -384,7 +385,7 @@
     }).then(function (response) {
       if (!response.ok) throw new Error('not accepted: ' + response.status);
       form.hidden = true;
-      intro.hidden = true;
+      feedbackInvite.hidden = true;
       thanksMessage.textContent = email === ''
         ? 'Thank you very much for your feedback!'
         : 'Thank you very much for your feedback! We may follow up by email.';
