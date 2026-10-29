@@ -1,6 +1,6 @@
 # privacymagic-backend
 
-Cloudflare Worker that accepts a problem report from the Privacy Magic extension and emails it to reports@privacymagic.com.
+Cloudflare Worker that accepts a problem report from the Privacy Magic extension and emails it to reports@privacymagic.com. It also hosts the uninstall feedback page at `/uninstall`.
 
 ## Request
 
@@ -10,15 +10,20 @@ Cloudflare Worker that accepts a problem report from the Privacy Magic extension
 {
   "description": "The video player stays blank.",
   "email": "person@example.com",
-  "website": "theguardian.com"
+  "website": "theguardian.com",
+  "type": "problem"
 }
 ```
 
-`description` is required and limited to 10,000 characters. `email` is optional, limited to 254 characters, and used only as the message's Reply-To. `website` is optional and must be a hostname, which is what the extension sends when "include website" is checked. Omit either optional field, or send an empty string, to leave it out.
+`description` is required and limited to 10,000 characters. `email` is optional, limited to 254 characters, and used only as the message's Reply-To. `website` is optional and must be a hostname, which is what the extension sends when "include website" is checked. Omit either optional field, or send an empty string, to leave it out. `type` is optional and defaults to `"problem"`; send `"uninstall"` from the uninstall feedback page (website is ignored for that type).
 
-Browser requests must come from a `chrome-extension://` or `moz-extension://` origin. Requests with no `Origin` header, such as curl, are accepted.
+Browser requests must come from a `chrome-extension://` or `moz-extension://` origin, or from `https://reports.privacymagic.com` (the uninstall page). Requests with no `Origin` header, such as curl, are accepted.
 
 A successful response is `200` with `{ "ok": true }`.
+
+## Uninstall page
+
+`public/uninstall.html` is served as a Workers static asset at `/uninstall` (shown after the extension is removed). Submissions use `type: "uninstall"`.
 
 ## Email
 

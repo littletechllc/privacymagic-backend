@@ -8,6 +8,7 @@ import {
 } from './report.ts'
 
 const REPORT_PATHS = new Set(['/', '/report'])
+const REPORTS_ORIGIN = 'https://reports.privacymagic.com'
 
 export const isExtensionOrigin = (origin: string): boolean => {
   try {
@@ -18,11 +19,14 @@ export const isExtensionOrigin = (origin: string): boolean => {
   }
 }
 
+export const isAllowedOrigin = (origin: string): boolean =>
+  isExtensionOrigin(origin) || origin === REPORTS_ORIGIN
+
 const responseHeaders = (origin: string | null): Headers => {
   const headers = new Headers({
     'cache-control': 'no-store',
   })
-  if (origin != null && isExtensionOrigin(origin)) {
+  if (origin != null && isAllowedOrigin(origin)) {
     headers.set('access-control-allow-origin', origin)
     headers.set('vary', 'Origin')
     headers.set('access-control-allow-methods', 'POST, OPTIONS')
@@ -122,12 +126,13 @@ export const handleRequest = async (
 ): Promise<Response> => {
   const url = new URL(request.url)
   const origin = request.headers.get('Origin')
+
   if (!REPORT_PATHS.has(url.pathname)) {
     return jsonResponse(404, { error: 'Not found.' }, origin)
   }
 
   if (request.method === 'OPTIONS') {
-    if (origin != null && !isExtensionOrigin(origin)) {
+    if (origin != null && !isAllowedOrigin(origin)) {
       return jsonResponse(403, { error: 'Origin is not allowed.' }, origin)
     }
     return emptyResponse(204, origin)
@@ -137,7 +142,7 @@ export const handleRequest = async (
     return jsonResponse(405, { error: 'Use POST.' }, origin)
   }
 
-  if (origin != null && !isExtensionOrigin(origin)) {
+  if (origin != null && !isAllowedOrigin(origin)) {
     return jsonResponse(403, { error: 'Origin is not allowed.' }, origin)
   }
 

@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { describe, it } from 'node:test'
+import { fileURLToPath } from 'node:url'
 import type { Env, OutboundEmail } from '../src/env.ts'
 import { handleRequest } from '../src/index.ts'
 import { DESCRIPTION_MAX_LENGTH, parseReport } from '../src/report.ts'
+
+const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public')
 
 const submittedAt = new Date('2026-10-20T21:00:00.000Z')
 
@@ -10,7 +15,7 @@ const allowAll = async (): Promise<{ success: boolean }> => ({ success: true })
 
 const testEnv = (sent: OutboundEmail[]): Env => ({
   REPORT_TO: 'reports@privacymagic.com',
-  REPORT_FROM: 'noreply@privacymagic.com',
+  REPORT_FROM: 'noreply@reports.privacymagic.com',
   REPORT_RATE_LIMITER: { limit: allowAll },
   EMAIL: {
     async send(message) {
@@ -43,6 +48,7 @@ describe('parseReport', () => {
         ok: true,
         report: {
           description: 'The video player stays blank.',
+          type: 'problem',
           email: 'person@example.com',
           website: 'theguardian.com',
         },
@@ -53,14 +59,37 @@ describe('parseReport', () => {
   it('omits an empty email and website', () => {
     assert.deepEqual(parseReport({ description: 'Broken layout', email: '', website: '  ' }), {
       ok: true,
-      report: { description: 'Broken layout' },
+      report: { description: 'Broken layout', type: 'problem' },
     })
+  })
+
+  it('accepts uninstall feedback and ignores website', () => {
+    assert.deepEqual(
+      parseReport({
+        description: 'Too complicated',
+        email: 'person@example.com',
+        website: 'example.com',
+        type: 'uninstall',
+      }),
+      {
+        ok: true,
+        report: {
+          description: 'Too complicated',
+          type: 'uninstall',
+          email: 'person@example.com',
+        },
+      },
+    )
   })
 
   it('rejects a missing, blank, or oversized description', () => {
     assert.equal(parseReport({}).ok, false)
     assert.equal(parseReport({ description: '   ' }).ok, false)
     assert.equal(parseReport({ description: 'x'.repeat(DESCRIPTION_MAX_LENGTH + 1) }).ok, false)
+  })
+
+  it('rejects an invalid type', () => {
+    assert.equal(parseReport({ description: 'x', type: 'other' }).ok, false)
   })
 
   it('rejects an email or website that could break the message headers', () => {
@@ -89,13 +118,15 @@ describe('handleRequest', () => {
     assert.deepEqual(sent, [
       {
         to: 'reports@privacymagic.com',
-        from: { email: 'noreply@privacymagic.com', name: 'Privacy Magic' },
+        from: { email: 'noreply@reports.privacymagic.com', name: 'Privacy Magic' },
         replyTo: 'reader@example.com',
         subject: 'Privacy Magic problem report: example.com',
         text: [
-          'Website: example.com',
+          'Type: problem',
           'Email: reader@example.com',
           'Submitted: 2026-10-20T21:00:00.000Z',
+          '',
+          'Website: example.com',
           '',
           'Images never load.',
         ].join('\n'),
@@ -115,7 +146,32 @@ describe('handleRequest', () => {
     assert.equal(sent[0]?.replyTo, undefined)
     assert.match(sent[0]?.text ?? '', /Website: not included/)
     assert.match(sent[0]?.text ?? '', /Email: not provided/)
+    assert.match(sent[0]?.text ?? '', /Type: problem/)
     assert.equal(sent[0]?.subject, 'Privacy Magic problem report')
+  })
+
+  it('emails uninstall feedback from the reports origin', async () => {
+    const sent: OutboundEmail[] = []
+    const response = await handleRequest(
+      postReport(
+        { description: 'Switching browsers.', email: 'reader@example.com', type: 'uninstall' },
+        { headers: { origin: 'https://reports.privacymagic.com' } },
+      ),
+      testEnv(sent),
+      () => submittedAt,
+    )
+
+    assert.equal(response.status, 200)
+    assert.equal(sent[0]?.subject, 'Privacy Magic uninstall feedback')
+    assert.match(sent[0]?.text ?? '', /Type: uninstall/)
+    assert.equal(/Website:/.test(sent[0]?.text ?? ''), false)
+    assert.equal(sent[0]?.replyTo, 'reader@example.com')
+  })
+
+  it('keeps an uninstall.html asset for Workers static hosting', () => {
+    const html = readFileSync(join(publicDir, 'uninstall.html'), 'utf8')
+    assert.match(html, /Thank you for trying Privacy Magic!/)
+    assert.match(html, /type: 'uninstall'/)
   })
 
   it('allows a Firefox extension origin and answers the preflight', async () => {

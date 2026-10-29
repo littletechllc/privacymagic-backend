@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Magic: Uninstalled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1a5ca8;
+    --blue-dark: #0f3d72;
+    --blue-light: #e8f0fb;
+    --blue-mid: #8ab0e0;
+    --btn: #1a5ca8;
+    --btn-hover: #0f3d72;
+    --text: #0d1f3c;
+    --text-muted: #3a5070;
+    --bg: #fdfcfa;
+    --bg-card: #ffffff;
+    --toggle-unchecked-icon: #c80b0b;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --blue: #7eb0ea;
+      --blue-dark: #c8d9ec;
+      --blue-light: #162033;
+      --blue-mid: #6aa0d8;
+      --btn: #1a5ca8;
+      --btn-hover: #154a8a;
+      --text: #d5dde8;
+      --text-muted: #a8b4c4;
+      --bg: #0b1018;
+      --bg-card: #131c29;
+      --toggle-unchecked-icon: #e88888;
+      color-scheme: dark;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .report-page,
+  #uninstallForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  #uninstallForm[hidden],
+  #uninstallThanks[hidden] {
+    display: none;
+  }
+
+  #uninstallThanks {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .report-page {
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .report-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-family: 'Lora', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    color: var(--blue-dark);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .report-title {
+      color: #ffffff;
+    }
+  }
+
+  .report-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .report-intro p {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .report-logo {
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+    margin-top: calc((1.3em - 1.15em) / 2);
+  }
+
+  .report-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 1.05rem;
+    font-weight: 400;
+  }
+
+  .report-field textarea,
+  .report-field input {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--bg-card);
+    border: 1px solid var(--blue-mid);
+    border-radius: 10px;
+    padding: 0.7rem 0.85rem;
+    width: 100%;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--btn);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0.65rem 1.5rem;
+    border-radius: 999px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover {
+    background: var(--btn-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-row--end {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .report-page .btn-row {
+    margin-top: 1.4rem;
+  }
+
+  #uninstallSubmit {
+    justify-content: center;
+  }
+
+  #uninstallSubmit:disabled,
+  #uninstallSubmit:disabled:hover {
+    cursor: default;
+    pointer-events: none;
+    transform: none;
+  }
+
+  #uninstallSubmit:disabled:not([aria-busy="true"]),
+  #uninstallSubmit:disabled:not([aria-busy="true"]):hover {
+    opacity: 0.45;
+  }
+
+  .report-submit-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    height: 1em;
+  }
+
+  .report-submit-dots[hidden] {
+    display: none;
+  }
+
+  .report-submit-dots span {
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    animation: report-submit-dot 0.6s infinite linear;
+  }
+
+  .report-submit-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .report-submit-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes report-submit-dot {
+    0%, 33.333% {
+      background-color: #fff;
+    }
+    33.334%, 100% {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  .report-field--email {
+    position: relative;
+  }
+
+  .report-field-error {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    right: 0;
+    margin: 0;
+    color: var(--toggle-unchecked-icon);
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .report-field-error[hidden] {
+    display: none;
+  }
+
+  .report-error {
+    margin: 0;
+    color: var(--toggle-unchecked-icon);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: end;
+  }
+
+  .report-thanks {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<main class="report-page">
+  <div class="report-intro" id="uninstallIntro">
+    <h1 class="report-title">
+      <svg class="report-logo" viewBox="0 95 81.81 113.625" aria-hidden="true">
+        <path fill="#0f3d72" d="m 41.144905,99.287894 c -7.095753,-0.0019 -6.802566,7.544646 -6.751521,11.687876 -0.171356,11.96919 -0.20001,24.0713 -0.35308,36.04071 -1.263101,0.0354 -1.789146,0.032 -2.877671,0.0152 -0.03015,-11.45355 -0.07221,-25.47949 -0.480652,-36.92748 -0.451497,-3.42622 -2.402056,-4.74535 -5.856631,-4.72952 -4.060304,0.0186 -5.372398,2.2701 -5.803601,5.0721 -0.754523,9.98046 -0.274919,20.00273 -0.695174,29.99778 -0.06786,5.00699 -0.138038,10.01412 -0.223124,15.02085 -2.631992,-4.31945 -8.045651,-9.88406 -13.745267,-10.47193 -4.71206867,-0.54404 -6.4170906,1.31499 -10.5126089,3.37598 7.4713254,0.20542 10.9619806,6.8051 13.2498058,14.83022 3.7452781,10.98179 6.7076881,21.93022 12.9598091,31.92514 4.748042,5.59996 12.313259,9.29303 19.756707,9.18692 v 0.0272 c 0.01183,-4e-4 0.02293,-5.5e-4 0.03346,-8.9e-4 8.286165,-0.0509 16.54277,-2.26913 21.909593,-9.16853 6.252075,-9.99492 9.214485,-20.94336 12.959726,-31.92514 2.287825,-8.02513 5.778453,-14.62481 13.249741,-14.83022 -4.095501,-2.061 -5.800513,-3.92002 -10.512543,-3.37598 -5.699598,0.58787 -11.113221,6.15249 -13.745201,10.47194 -0.08506,-5.00674 -0.155253,-10.01387 -0.223125,-15.02087 -0.420259,-9.99506 0.05935,-20.01734 -0.695164,-29.99776 -0.431196,-2.802 -1.74331,-5.05353 -5.803602,-5.07211 -3.454578,-0.0157 -5.405136,1.30332 -5.856633,4.72953 -0.408433,11.44796 -0.45051,25.47392 -0.480649,36.92748 -1.088538,0.0166 -1.614563,0.0202 -2.877675,-0.0152 -0.15306,-11.9694 -0.181721,-24.07156 -0.353078,-36.04071 0.05102,-4.14322 0.376645,-11.663909 -6.271824,-11.732798 z"/>
+        <ellipse fill="#ffffff" cx="41.097012" cy="172.01845" rx="20.7" ry="12.6"/>
+        <circle fill="#0f3d72" cx="41.097012" cy="172.01845" r="8.1"/>
+      </svg>
+      <span>Thank you for trying Privacy Magic!</span>
+    </h1>
+    <p>The Privacy Magic extension has been uninstalled. If you would like to provide feedback, we would be very grateful.</p>
+  </div>
+  <div id="uninstallForm">
+    <label class="report-field" for="feedbackDescription">
+      <span>Please share your feedback:</span>
+      <textarea id="feedbackDescription" rows="6" maxlength="10000"></textarea>
+    </label>
+    <label class="report-field report-field--email" for="emailAddress">
+      <span>Email address (optional):</span>
+      <input id="emailAddress" type="text" autocomplete="email" maxlength="254" aria-describedby="emailError">
+      <p id="emailError" class="report-field-error" hidden role="alert">Please enter a valid email address.</p>
+    </label>
+    <div class="btn-row btn-row--end">
+      <button type="button" class="btn-primary" id="uninstallSubmit" disabled>
+        <span class="report-submit-label">Submit feedback</span>
+        <span class="report-submit-dots" hidden aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+    <p id="uninstallError" class="report-error" hidden role="alert">Submission failed</p>
+  </div>
+  <div id="uninstallThanks" hidden>
+    <p id="uninstallThanksMessage" class="report-thanks" role="status"></p>
+  </div>
+</main>
+<script>
+(function () {
+  var EMAIL_MAX_LENGTH = 254;
+  var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+  var CONTROL_CHARS = /[\u0000-\u001F\u007F]/u;
+
+  function isAcceptableEmail(value) {
+    if (value === '') return true;
+    if (value.length > EMAIL_MAX_LENGTH || CONTROL_CHARS.test(value)) return false;
+    return EMAIL_PATTERN.test(value);
+  }
+
+  var form = document.getElementById('uninstallForm');
+  var intro = document.getElementById('uninstallIntro');
+  var descriptionInput = document.getElementById('feedbackDescription');
+  var emailInput = document.getElementById('emailAddress');
+  var submitButton = document.getElementById('uninstallSubmit');
+  var submitLabel = submitButton && submitButton.querySelector('.report-submit-label');
+  var submitDots = submitButton && submitButton.querySelector('.report-submit-dots');
+  var emailError = document.getElementById('emailError');
+  var errorElement = document.getElementById('uninstallError');
+  var thanksPanel = document.getElementById('uninstallThanks');
+  var thanksMessage = document.getElementById('uninstallThanksMessage');
+
+  if (!form || !intro || !descriptionInput || !emailInput || !submitButton ||
+      !submitLabel || !submitDots || !emailError || !errorElement ||
+      !thanksPanel || !thanksMessage) {
+    return;
+  }
+
+  function hasDescription() {
+    return descriptionInput.value.trim() !== '';
+  }
+
+  function hideEmailError() {
+    emailError.hidden = true;
+    emailInput.setAttribute('aria-invalid', 'false');
+  }
+
+  function showEmailError() {
+    emailError.hidden = false;
+    emailInput.setAttribute('aria-invalid', 'true');
+  }
+
+  function setSubmitWaiting(waiting) {
+    if (waiting) {
+      submitButton.style.minWidth = submitButton.offsetWidth + 'px';
+    } else {
+      submitButton.style.minWidth = '';
+    }
+    submitButton.disabled = waiting || !hasDescription();
+    submitButton.setAttribute('aria-busy', waiting ? 'true' : 'false');
+    submitLabel.hidden = waiting;
+    submitDots.hidden = !waiting;
+  }
+
+  function syncSubmitEnabled() {
+    if (submitButton.getAttribute('aria-busy') === 'true') return;
+    submitButton.disabled = !hasDescription();
+  }
+
+  descriptionInput.addEventListener('input', syncSubmitEnabled);
+  emailInput.addEventListener('input', hideEmailError);
+  setSubmitWaiting(false);
+
+  submitButton.addEventListener('click', function () {
+    var description = descriptionInput.value.trim();
+    var email = emailInput.value.trim();
+    if (submitButton.disabled || description === '') return;
+    if (!isAcceptableEmail(email)) {
+      showEmailError();
+      return;
+    }
+    hideEmailError();
+    errorElement.hidden = true;
+    setSubmitWaiting(true);
+
+    var body = { description: description, type: 'uninstall' };
+    if (email !== '') body.email = email;
+
+    fetch('/report', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(function (response) {
+      if (!response.ok) throw new Error('not accepted: ' + response.status);
+      form.hidden = true;
+      intro.hidden = true;
+      thanksMessage.textContent = email === ''
+        ? 'Thank you very much for your feedback!'
+        : 'Thank you very much for your feedback! We may follow up by email.';
+      thanksPanel.hidden = false;
+    }).catch(function () {
+      setSubmitWaiting(false);
+      errorElement.hidden = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>
