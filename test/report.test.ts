@@ -4,10 +4,13 @@ import { dirname, join } from 'node:path'
 import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import type { Env, OutboundEmail } from '../src/env.ts'
-import { handleRequest } from '../src/index.ts'
+import { createHandleRequest } from '../src/handle-request.ts'
 import { DESCRIPTION_MAX_LENGTH, parseReport } from '../src/report.ts'
+import { renderUninstallPage } from '../src/uninstall-page.ts'
 
-const publicDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'public')
+const srcDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'src')
+const uninstallTemplate = readFileSync(join(srcDir, 'uninstall.html'), 'utf8')
+const handleRequest = createHandleRequest(uninstallTemplate)
 
 const submittedAt = new Date('2026-10-20T21:00:00.000Z')
 
@@ -100,6 +103,28 @@ describe('parseReport', () => {
   })
 })
 
+describe('uninstall page', () => {
+  it('localizes HTML on the server from hl', () => {
+    const html = renderUninstallPage(uninstallTemplate, 'de')
+    assert.match(html, /lang="de"/)
+    assert.match(html, /Danke, dass du Privacy Magic ausprobiert hast!/)
+    assert.equal(html.includes('{{uninstallHeading}}'), false)
+    assert.equal(html.includes('uninstall-messages.json'), false)
+  })
+
+  it('serves a localized uninstall page', async () => {
+    const response = await handleRequest(
+      new Request('https://reports.privacymagic.com/uninstall?hl=fr'),
+      testEnv([]),
+    )
+    assert.equal(response.status, 200)
+    assert.match(response.headers.get('content-type') ?? '', /text\/html/)
+    const html = await response.text()
+    assert.match(html, /lang="fr"/)
+    assert.match(html, /Envoyer les commentaires/)
+  })
+})
+
 describe('handleRequest', () => {
   it('emails the report to the reports mailbox and sets Reply-To', async () => {
     const sent: OutboundEmail[] = []
@@ -168,12 +193,6 @@ describe('handleRequest', () => {
     assert.equal(sent[0]?.replyTo, 'reader@example.com')
   })
 
-  it('keeps an uninstall.html asset for Workers static hosting', () => {
-    const html = readFileSync(join(publicDir, 'uninstall.html'), 'utf8')
-    assert.match(html, /Thank you for trying Privacy Magic!/)
-    assert.match(html, /type: 'uninstall'/)
-  })
-
   it('allows a Firefox extension origin and answers the preflight', async () => {
     const sent: OutboundEmail[] = []
     const origin = 'moz-extension://12345678-abcd-1234-abcd-123456789abc'
@@ -231,6 +250,10 @@ describe('handleRequest', () => {
     const env = testEnv(sent)
     assert.equal((await handleRequest(new Request('https://reports.privacymagic.com/report'), env)).status, 405)
     assert.equal((await handleRequest(new Request('https://reports.privacymagic.com/other', { method: 'POST' }), env)).status, 404)
+    assert.equal(
+      (await handleRequest(new Request('https://reports.privacymagic.com/uninstall', { method: 'POST' }), env)).status,
+      405,
+    )
 
     const oversized = new Request('https://reports.privacymagic.com/', {
       method: 'POST',

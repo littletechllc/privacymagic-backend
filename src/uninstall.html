@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{lang}}" dir="{{dir}}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy Magic: Uninstalled</title>
+<title>{{uninstallPageTitle}}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -263,7 +263,11 @@
 </style>
 </head>
 <body>
-<main class="report-page">
+<main
+  class="report-page"
+  data-thanks="{{uninstallThanks}}"
+  data-thanks-with-email="{{uninstallThanksWithEmail}}"
+>
   <div class="report-intro" id="uninstallIntro">
     <h1 class="report-title">
       <svg class="report-logo" viewBox="0 95 81.81 113.625" aria-hidden="true">
@@ -271,28 +275,28 @@
         <ellipse fill="#ffffff" cx="41.097012" cy="172.01845" rx="20.7" ry="12.6"/>
         <circle fill="#0f3d72" cx="41.097012" cy="172.01845" r="8.1"/>
       </svg>
-      <span>Thank you for trying Privacy Magic!</span>
+      <span>{{uninstallHeading}}</span>
     </h1>
-    <p>The Privacy Magic extension has been uninstalled.</p>
-    <p id="uninstallFeedbackInvite">If you would like to provide feedback, we would be very grateful.</p>
+    <p>{{uninstallBody}}</p>
+    <p id="uninstallFeedbackInvite">{{uninstallFeedbackInvite}}</p>
   </div>
   <div id="uninstallForm">
     <label class="report-field" for="feedbackDescription">
-      <span>Please share your feedback:</span>
+      <span>{{uninstallDescriptionLabel}}</span>
       <textarea id="feedbackDescription" rows="6" maxlength="10000"></textarea>
     </label>
     <label class="report-field report-field--email" for="emailAddress">
-      <span>Email address (optional):</span>
+      <span>{{uninstallEmailLabel}}</span>
       <input id="emailAddress" type="text" autocomplete="email" maxlength="254" aria-describedby="emailError">
-      <p id="emailError" class="report-field-error" hidden role="alert">Please enter a valid email address.</p>
+      <p id="emailError" class="report-field-error" hidden role="alert">{{uninstallEmailInvalid}}</p>
     </label>
     <div class="btn-row btn-row--end">
       <button type="button" class="btn-primary" id="uninstallSubmit" disabled>
-        <span class="report-submit-label">Submit feedback</span>
+        <span class="report-submit-label">{{uninstallSubmit}}</span>
         <span class="report-submit-dots" hidden aria-hidden="true"><span></span><span></span><span></span></span>
       </button>
     </div>
-    <p id="uninstallError" class="report-error" hidden role="alert">Submission failed</p>
+    <p id="uninstallError" class="report-error" hidden role="alert">{{uninstallSubmissionFailed}}</p>
   </div>
   <div id="uninstallThanks" hidden>
     <p id="uninstallThanksMessage" class="report-thanks" role="status"></p>
@@ -310,6 +314,7 @@
     return EMAIL_PATTERN.test(value);
   }
 
+  var page = document.querySelector('main.report-page');
   var form = document.getElementById('uninstallForm');
   var feedbackInvite = document.getElementById('uninstallFeedbackInvite');
   var descriptionInput = document.getElementById('feedbackDescription');
@@ -322,7 +327,7 @@
   var thanksPanel = document.getElementById('uninstallThanks');
   var thanksMessage = document.getElementById('uninstallThanksMessage');
 
-  if (!form || !feedbackInvite || !descriptionInput || !emailInput || !submitButton ||
+  if (!page || !form || !feedbackInvite || !descriptionInput || !emailInput || !submitButton ||
       !submitLabel || !submitDots || !emailError || !errorElement ||
       !thanksPanel || !thanksMessage) {
     return;
@@ -387,8 +392,8 @@
       form.hidden = true;
       feedbackInvite.hidden = true;
       thanksMessage.textContent = email === ''
-        ? 'Thank you very much for your feedback!'
-        : 'Thank you very much for your feedback! We may follow up by email.';
+        ? page.getAttribute('data-thanks')
+        : page.getAttribute('data-thanks-with-email');
       thanksPanel.hidden = false;
     }).catch(function () {
       setSubmitWaiting(false);

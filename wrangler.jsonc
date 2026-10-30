@@ -4,9 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-20",
   "workers_dev": false,
-  "assets": {
-    "directory": "./public"
-  },
+  "rules": [
+    { "type": "Text", "globs": ["**/*.html"], "fallthrough": true }
+  ],
   "routes": [
     { "pattern": "reports.privacymagic.com", "custom_domain": true }
   ],

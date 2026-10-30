@@ -23,7 +23,7 @@ A successful response is `200` with `{ "ok": true }`.
 
 ## Uninstall page
 
-`public/uninstall.html` is served as a Workers static asset at `/uninstall` (shown after the extension is removed). Submissions use `type: "uninstall"`.
+`GET /uninstall` is rendered by the Worker from `src/uninstall.html` and `src/uninstall-messages.json`. The extension opens it with `?hl=` set from `chrome.i18n.getUILanguage()`; without `hl`, `Accept-Language` is used. Submissions use `type: "uninstall"`.
 
 ## Email
 
